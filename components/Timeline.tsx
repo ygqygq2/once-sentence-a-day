@@ -9,6 +9,15 @@ interface TimelineProps {
 
 const ITEMS_PER_PAGE = 10;
 
+// 格式化日期显示
+function formatDate(dateStr: string) {
+  const [year, month, day] = dateStr.split('-');
+  return {
+    monthDay: `${parseInt(month)}月${parseInt(day)}日`,
+    year: year
+  };
+}
+
 export default function Timeline({ initialSentences }: TimelineProps) {
   const [displayedSentences, setDisplayedSentences] = useState<Sentence[]>(
     initialSentences.slice(0, ITEMS_PER_PAGE)
@@ -70,33 +79,36 @@ export default function Timeline({ initialSentences }: TimelineProps) {
 
           {/* 句子列表 */}
           <div className="space-y-6 sm:space-y-8">
-            {displayedSentences.map((sentence, index) => (
-              <div
-                key={sentence.date}
-                className="relative pl-12 sm:pl-20 animate-fadeIn"
-                style={{
-                  animationDelay: `${(index % ITEMS_PER_PAGE) * 0.1}s`,
-                }}
-              >
-                {/* 时间节点 */}
-                <div className="absolute left-0 top-2 w-10 sm:w-16 text-right pr-1 sm:pr-0">
-                  <div className="text-xs sm:text-sm font-semibold text-gray-700">
-                    {sentence.date.slice(5)}
+            {displayedSentences.map((sentence, index) => {
+              const { monthDay, year } = formatDate(sentence.date);
+              return (
+                <div
+                  key={sentence.date}
+                  className="relative pl-12 sm:pl-20 animate-fadeIn"
+                  style={{
+                    animationDelay: `${(index % ITEMS_PER_PAGE) * 0.1}s`,
+                  }}
+                >
+                  {/* 时间节点 */}
+                  <div className="absolute left-0 top-2 w-10 sm:w-16 text-right pr-1 sm:pr-0">
+                    <div className="text-xs sm:text-sm font-semibold text-gray-700 whitespace-nowrap">
+                      {monthDay}
+                    </div>
+                    <div className="text-[10px] sm:text-xs text-gray-500">
+                      {year}
+                    </div>
                   </div>
-                  <div className="text-[10px] sm:text-xs text-gray-500">
-                    {sentence.date.slice(0, 4)}
+
+                  {/* 时间点圆圈 */}
+                  <div className="absolute left-[13px] sm:left-[26px] top-3 w-3 h-3 sm:w-4 sm:h-4 bg-white border-2 sm:border-4 border-blue-500 rounded-full shadow-lg"></div>
+
+                  {/* 内容卡片 */}
+                  <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 hover:shadow-xl transition-shadow duration-300">
+                    <p className="text-sm sm:text-base text-gray-800 leading-relaxed">{sentence.content}</p>
                   </div>
                 </div>
-
-                {/* 时间点圆圈 */}
-                <div className="absolute left-[13px] sm:left-[26px] top-3 w-3 h-3 sm:w-4 sm:h-4 bg-white border-2 sm:border-4 border-blue-500 rounded-full shadow-lg"></div>
-
-                {/* 内容卡片 */}
-                <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 hover:shadow-xl transition-shadow duration-300">
-                  <p className="text-sm sm:text-base text-gray-800 leading-relaxed">{sentence.content}</p>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {/* 加载指示器 */}
