@@ -12,7 +12,7 @@ export default async function Home() {
       {/* 标题 */}
       <header className="text-center py-4 sm:py-6 bg-white shadow-sm flex-shrink-0">
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-1">每天一句话</h1>
-        <p className="text-xs sm:text-sm text-gray-600">记录生活的点滴瞬间</p>
+        <p className="text-xs sm:text-sm text-gray-600">每天随便一句话</p>
       </header>
 
       {/* 两列布局 - 各自滚动 */}
