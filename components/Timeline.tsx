@@ -100,8 +100,14 @@ export default function Timeline({ initialSentences, initialLikes }: TimelinePro
                   </div>
 
                   {/* 内容卡片 */}
-                  <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 hover:shadow-xl transition-shadow duration-300">
-                    <p className="text-sm sm:text-base text-gray-800 leading-relaxed mb-4">{sentence.content}</p>
+                  <div className="bg-white rounded-lg shadow-sm p-3 sm:p-4 hover:shadow-md transition-shadow duration-200 group">
+                    {/* 内容 - 默认省略，悬停显示完整 */}
+                    <p 
+                      className="text-xs sm:text-sm text-gray-700 leading-relaxed mb-3 line-clamp-2 group-hover:line-clamp-none transition-all"
+                      title={sentence.content}
+                    >
+                      {sentence.content}
+                    </p>
                     
                     {/* 点赞按钮 */}
                     <div className="flex justify-end">
