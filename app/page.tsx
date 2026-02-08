@@ -21,8 +21,8 @@ export default async function Home() {
             <Timeline initialSentences={sentences} />
           </div>
 
-          {/* 右侧：点赞排行榜（独立滚动） */}
-          <aside className="hidden lg:block lg:col-span-4 h-full overflow-y-auto overscroll-contain">
+          {/* 右侧：点赞排行榜（分页展示，无滚动条） */}
+          <aside className="hidden lg:block lg:col-span-4 h-full overflow-hidden">
             <TopLikes sentences={sentences} />
           </aside>
         </div>

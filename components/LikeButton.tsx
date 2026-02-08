@@ -16,6 +16,10 @@ export default function LikeButton({ date, initialLikes, onLikeChange }: LikeBut
   const [cooldownSeconds, setCooldownSeconds] = useState(0);
 
   useEffect(() => {
+    setLikes(initialLikes);
+  }, [initialLikes]);
+
+  useEffect(() => {
     // 检查冷却时间
     const cooldownKey = `cooldown:${date}`;
     const cooldownEnd = localStorage.getItem(cooldownKey);

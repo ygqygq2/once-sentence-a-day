@@ -2,7 +2,7 @@
 
 import { Sentence } from "@/lib/data";
 import { useEffect, useState, useRef, useCallback } from "react";
-import { getAllLikes } from "@/lib/cloudflare-api";
+import { getLikesByDates } from "@/lib/cloudflare-api";
 import LikeButton from "./LikeButton";
 
 interface TimelineProps {
@@ -28,21 +28,30 @@ export default function Timeline({ initialSentences }: TimelineProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [likes, setLikes] = useState<{ [date: string]: number }>({});
   const observerTarget = useRef<HTMLDivElement>(null);
+  const fetchedDatesRef = useRef<Set<string>>(new Set());
 
-  // 客户端获取点赞数据
-  useEffect(() => {
-    async function fetchLikes() {
-      const likesData = await getAllLikes();
-      setLikes(likesData);
-    }
-    fetchLikes();
+  const fetchLikesForSentences = useCallback(async (sentences: Sentence[]) => {
+    const missingDates = sentences
+      .map((s) => s.date)
+      .filter((date) => !fetchedDatesRef.current.has(date));
+
+    if (missingDates.length === 0) return;
+
+    const likesData = await getLikesByDates(missingDates);
+    missingDates.forEach((date) => fetchedDatesRef.current.add(date));
+    setLikes((prev) => ({ ...prev, ...likesData }));
   }, []);
+
+  // 客户端按需获取点赞数据
+  useEffect(() => {
+    fetchLikesForSentences(displayedSentences);
+  }, [displayedSentences, fetchLikesForSentences]);
 
   const loadMore = useCallback(() => {
     if (isLoading || !hasMore) return;
 
     setIsLoading(true);
-    setTimeout(() => {
+    setTimeout(async () => {
       const currentLength = displayedSentences.length;
       const nextSentences = initialSentences.slice(
         currentLength,
@@ -52,8 +61,9 @@ export default function Timeline({ initialSentences }: TimelineProps) {
       setDisplayedSentences((prev) => [...prev, ...nextSentences]);
       setHasMore(currentLength + nextSentences.length < initialSentences.length);
       setIsLoading(false);
+      await fetchLikesForSentences(nextSentences);
     }, 500);
-  }, [displayedSentences.length, hasMore, initialSentences, isLoading]);
+  }, [displayedSentences.length, fetchLikesForSentences, hasMore, initialSentences, isLoading]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -81,7 +91,7 @@ export default function Timeline({ initialSentences }: TimelineProps) {
     <div className="w-full">
       <div className="relative">
         {/* 时间线 */}
-        <div className="absolute left-4 sm:left-8 top-0 bottom-0 w-0.5 bg-gradient-to-b from-blue-200 to-indigo-200"></div>
+        <div className="absolute left-3 sm:left-8 top-0 bottom-0 w-0.5 bg-gradient-to-b from-blue-200 to-indigo-200"></div>
 
           {/* 句子列表 */}
           <div className="space-y-6 sm:space-y-8">
@@ -90,20 +100,20 @@ export default function Timeline({ initialSentences }: TimelineProps) {
               return (
                 <div
                   key={sentence.date}
-                  className="relative pl-12 sm:pl-20 animate-fadeIn"
+                  className="relative pl-10 sm:pl-20 animate-fadeIn"
                   style={{
                     animationDelay: `${(index % ITEMS_PER_PAGE) * 0.1}s`,
                   }}
                 >
                   {/* 时间点圆圈 */}
-                  <div className="absolute left-4 sm:left-8 top-3 -translate-x-1/2 w-3 h-3 sm:w-4 sm:h-4 bg-white border-2 sm:border-4 border-blue-400 rounded-full shadow-md"></div>
+                  <div className="absolute left-3 sm:left-8 top-3 -translate-x-1/2 w-3 h-3 sm:w-4 sm:h-4 bg-white border-2 sm:border-4 border-blue-400 rounded-full shadow-md"></div>
 
                   {/* 时间节点 */}
-                  <div className="absolute left-4 sm:left-8 top-8 sm:top-9 -translate-x-1/2 w-14 sm:w-16 text-center">
+                  <div className="absolute left-3 sm:left-8 top-8 sm:top-9 -translate-x-1/2 text-center">
                     <div className="text-[11px] sm:text-sm font-bold text-gray-800 whitespace-nowrap">
                       {monthDay}
                     </div>
-                    <div className="text-[9px] sm:text-xs text-gray-600">
+                    <div className="text-[9px] sm:text-xs text-gray-600 whitespace-nowrap">
                       {year}
                     </div>
                   </div>

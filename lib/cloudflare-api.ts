@@ -10,6 +10,18 @@ export interface LikesData {
   [date: string]: number;
 }
 
+export interface TopLikeItem {
+  date: string;
+  likes: number;
+}
+
+export interface TopLikesResponse {
+  items: TopLikeItem[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
 /**
  * 获取所有点赞数据
  */
@@ -29,6 +41,61 @@ export async function getAllLikes(): Promise<LikesData> {
   } catch (error) {
     console.error('Error fetching likes:', error);
     return {};
+  }
+}
+
+/**
+ * 批量获取指定日期的点赞数
+ */
+export async function getLikesByDates(dates: string[]): Promise<LikesData> {
+  if (dates.length === 0) return {};
+
+  try {
+    const params = new URLSearchParams({
+      dates: dates.join(','),
+    });
+
+    const response = await fetch(`${WORKER_URL}/likes?${params.toString()}`, {
+      method: 'GET',
+      cache: 'no-store',
+    });
+
+    if (!response.ok) {
+      console.error('Failed to fetch likes by dates:', response.statusText);
+      return {};
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching likes by dates:', error);
+    return {};
+  }
+}
+
+/**
+ * 获取点赞排行榜（分页）
+ */
+export async function getTopLikes(page = 1, pageSize = 10): Promise<TopLikesResponse> {
+  try {
+    const params = new URLSearchParams({
+      page: String(page),
+      pageSize: String(pageSize),
+    });
+
+    const response = await fetch(`${WORKER_URL}/likes/top?${params.toString()}`, {
+      method: 'GET',
+      cache: 'no-store',
+    });
+
+    if (!response.ok) {
+      console.error('Failed to fetch top likes:', response.statusText);
+      return { items: [], total: 0, page, pageSize };
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching top likes:', error);
+    return { items: [], total: 0, page, pageSize };
   }
 }
 

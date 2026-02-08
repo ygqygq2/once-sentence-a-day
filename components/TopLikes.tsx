@@ -1,8 +1,8 @@
 "use client";
 
 import { Sentence } from '@/lib/data';
-import { useEffect, useState } from 'react';
-import { getAllLikes } from '@/lib/cloudflare-api';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { getTopLikes } from '@/lib/cloudflare-api';
 
 interface TopLikesProps {
   sentences: Sentence[];
@@ -15,36 +15,114 @@ interface RankedSentence extends Sentence {
 export default function TopLikes({ sentences }: TopLikesProps) {
   const [topSentences, setTopSentences] = useState<RankedSentence[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [itemsPerPage, setItemsPerPage] = useState(6);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLDivElement>(null);
+  const paginationRef = useRef<HTMLDivElement>(null);
+  const firstItemRef = useRef<HTMLDivElement>(null);
+
+  const sentenceMap = useMemo(() => {
+    return new Map(sentences.map((s) => [s.date, s]));
+  }, [sentences]);
+
+  const itemsPerPageRef = useRef(itemsPerPage);
+  
+  useEffect(() => {
+    itemsPerPageRef.current = itemsPerPage;
+  }, [itemsPerPage]);
 
   useEffect(() => {
-    async function fetchAndRank() {
+    let active = true;
+
+    async function fetchPage() {
+      setIsLoading(true);
       try {
-        const likesData = await getAllLikes();
-        
-        // 合并句子和点赞数据，排序
-        const ranked = sentences
-          .map(s => ({
-            ...s,
-            likes: likesData[s.date] || 0
-          }))
-          .filter(s => s.likes > 0)  // 只显示有点赞的
-          .sort((a, b) => b.likes - a.likes)
-          .slice(0, 10); // 只显示前 10 名
+        const data = await getTopLikes(currentPage, itemsPerPageRef.current);
+        if (!active) return;
+
+        const ranked = data.items.map((item) => {
+          const sentence = sentenceMap.get(item.date);
+          return {
+            date: item.date,
+            content: sentence?.content || '（内容缺失）',
+            likes: item.likes,
+          };
+        });
 
         setTopSentences(ranked);
+        setTotal(data.total || 0);
       } catch (error) {
         console.error('Failed to fetch likes:', error);
       } finally {
-        setIsLoading(false);
+        if (active) setIsLoading(false);
       }
     }
 
-    fetchAndRank();
+    fetchPage();
+
+    const interval = setInterval(fetchPage, 600000); // 10分钟刷新一次
+    return () => {
+      active = false;
+      clearInterval(interval);
+    };
+  }, [currentPage, sentenceMap]);
+
+  // 根据容器高度动态计算每页条数
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    let timeoutId: NodeJS.Timeout;
     
-    // 每30秒刷新一次
-    const interval = setInterval(fetchAndRank, 30000);
-    return () => clearInterval(interval);
-  }, [sentences]);
+    const calcItemsPerPage = () => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        const containerHeight = containerRef.current?.getBoundingClientRect().height || 0;
+        const headerHeight = headerRef.current?.getBoundingClientRect().height || 0;
+        const paginationHeight = paginationRef.current?.getBoundingClientRect().height || 0;
+        const itemHeight = firstItemRef.current?.getBoundingClientRect().height || 72;
+
+        const available = containerHeight - headerHeight - paginationHeight - 16;
+        const next = Math.max(1, Math.floor(available / itemHeight));
+
+        setItemsPerPage((prev) => (prev === next ? prev : next));
+      }, 200); // 防抖200ms
+    };
+
+    const observer = new ResizeObserver(calcItemsPerPage);
+    observer.observe(containerRef.current);
+    if (headerRef.current) observer.observe(headerRef.current);
+    if (paginationRef.current) observer.observe(paginationRef.current);
+    if (firstItemRef.current) observer.observe(firstItemRef.current);
+
+    calcItemsPerPage();
+
+    return () => {
+      clearTimeout(timeoutId);
+      observer.disconnect();
+    };
+  }, []);
+
+  const totalPages = useMemo(() => {
+    return Math.max(1, Math.ceil(total / itemsPerPage));
+  }, [itemsPerPage, total]);
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [totalPages, currentPage]);
+
+  const pageNumbers = useMemo(() => {
+    const maxButtons = 5;
+    let start = Math.max(1, currentPage - Math.floor(maxButtons / 2));
+    let end = Math.min(totalPages, start + maxButtons - 1);
+    if (end - start + 1 < maxButtons) {
+      start = Math.max(1, end - maxButtons + 1);
+    }
+    return Array.from({ length: end - start + 1 }, (_, i) => start + i);
+  }, [currentPage, totalPages]);
 
   // 格式化日期
   const formatDate = (dateStr: string) => {
@@ -53,13 +131,15 @@ export default function TopLikes({ sentences }: TopLikesProps) {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 h-fit">
-      <h2 className="text-lg sm:text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-        <span className="text-2xl">🏆</span>
-        点赞排行榜
-      </h2>
+    <div ref={containerRef} className="bg-white rounded-lg shadow-md p-4 sm:p-6 h-full flex flex-col">
+      <div ref={headerRef}>
+        <h2 className="text-lg sm:text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+          <span className="text-2xl">🏆</span>
+          点赞排行榜
+        </h2>
+      </div>
 
-      <div className="space-y-3">
+      <div className="space-y-3 flex-1">
         {isLoading ? (
           <div className="space-y-3">
             {[1, 2, 3].map(i => (
@@ -69,25 +149,26 @@ export default function TopLikes({ sentences }: TopLikesProps) {
               </div>
             ))}
           </div>
-        ) : topSentences.length === 0 ? (
+        ) : total === 0 ? (
           <p className="text-gray-500 text-sm text-center py-8">暂无点赞数据</p>
         ) : (
           topSentences.map((sentence, index) => (
             <div
               key={sentence.date}
+              ref={index === 0 ? firstItemRef : undefined}
               className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors"
             >
               {/* 排名 */}
               <div className={`
                 flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold
-                ${index === 0 ? 'bg-gradient-to-br from-yellow-400 to-yellow-600 text-white shadow-lg' : ''}
-                ${index === 1 ? 'bg-gradient-to-br from-gray-300 to-gray-500 text-white shadow-md' : ''}
-                ${index === 2 ? 'bg-gradient-to-br from-orange-400 to-orange-600 text-white shadow-md' : ''}
-                ${index === 3 ? 'bg-gradient-to-br from-blue-400 to-blue-500 text-white shadow-sm' : ''}
-                ${index === 4 ? 'bg-gradient-to-br from-purple-400 to-purple-500 text-white shadow-sm' : ''}
-                ${index > 4 ? 'bg-gray-200 text-gray-600' : ''}
+                ${(index + (currentPage - 1) * itemsPerPage) === 0 ? 'bg-gradient-to-br from-yellow-400 to-yellow-600 text-white shadow-lg' : ''}
+                ${(index + (currentPage - 1) * itemsPerPage) === 1 ? 'bg-gradient-to-br from-gray-300 to-gray-500 text-white shadow-md' : ''}
+                ${(index + (currentPage - 1) * itemsPerPage) === 2 ? 'bg-gradient-to-br from-orange-400 to-orange-600 text-white shadow-md' : ''}
+                ${(index + (currentPage - 1) * itemsPerPage) === 3 ? 'bg-gradient-to-br from-blue-400 to-blue-500 text-white shadow-sm' : ''}
+                ${(index + (currentPage - 1) * itemsPerPage) === 4 ? 'bg-gradient-to-br from-purple-400 to-purple-500 text-white shadow-sm' : ''}
+                ${(index + (currentPage - 1) * itemsPerPage) > 4 ? 'bg-gray-200 text-gray-600' : ''}
               `}>
-                {index + 1}
+                {index + 1 + (currentPage - 1) * itemsPerPage}
               </div>
 
               {/* 内容 */}
@@ -105,6 +186,47 @@ export default function TopLikes({ sentences }: TopLikesProps) {
               </div>
             </div>
           ))
+        )}
+      </div>
+
+      <div ref={paginationRef} className="pt-3 mt-auto">
+        {total > 0 && !isLoading && (
+          <div className="flex items-center justify-between gap-2 text-sm">
+            <button
+              type="button"
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="px-2 py-1 rounded border text-gray-600 disabled:text-gray-300 disabled:border-gray-200 hover:bg-gray-50"
+            >
+              上一页
+            </button>
+
+            <div className="flex items-center gap-1">
+              {pageNumbers.map((page) => (
+                <button
+                  key={page}
+                  type="button"
+                  onClick={() => setCurrentPage(page)}
+                  className={`w-7 h-7 rounded text-xs border ${
+                    page === currentPage
+                      ? 'bg-pink-50 border-pink-300 text-pink-600'
+                      : 'text-gray-600 border-gray-200 hover:bg-gray-50'
+                  }`}
+                >
+                  {page}
+                </button>
+              ))}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              className="px-2 py-1 rounded border text-gray-600 disabled:text-gray-300 disabled:border-gray-200 hover:bg-gray-50"
+            >
+              下一页
+            </button>
+          </div>
         )}
       </div>
     </div>
