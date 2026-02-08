@@ -25,25 +25,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout 代码
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6.0.2
         
       - name: 设置 Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6.2.0
         with:
           node-version: "20"
-          cache: "npm"
           
       - name: 设置 Pages
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@v5.0.0
         
       - name: 安装依赖
-        run: npm ci
+        run: npm install
         
       - name: 构建 Next.js
         run: npm run build
         
       - name: 上传构建产物
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v3.0.1
         with:
           path: ./out
 
@@ -57,4 +56,4 @@ jobs:
     steps:
       - name: 部署到 GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v4.0.5
