@@ -70,12 +70,12 @@ export default function Timeline({ initialSentences }: TimelineProps) {
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         <header className="text-center mb-8 sm:mb-12">
           <h1 className="text-3xl sm:text-4xl font-bold text-gray-800 mb-2">每天一句话</h1>
-          <p className="text-sm sm:text-base text-gray-600">记录生活的点滴瞬间</p>
+          <p className="text-sm sm:text-base text-gray-600">每天随便一句话</p>
         </header>
 
         <div className="relative">
           {/* 时间线 */}
-          <div className="absolute left-4 sm:left-8 top-0 bottom-0 w-0.5 bg-gradient-to-b from-blue-500 to-indigo-500"></div>
+          <div className="absolute left-4 sm:left-8 top-0 bottom-0 w-0.5 bg-gradient-to-b from-blue-200 to-indigo-200"></div>
 
           {/* 句子列表 */}
           <div className="space-y-6 sm:space-y-8">
@@ -90,14 +90,14 @@ export default function Timeline({ initialSentences }: TimelineProps) {
                   }}
                 >
                   {/* 时间点圆圈 */}
-                  <div className="absolute left-[13px] sm:left-[26px] top-3 w-3 h-3 sm:w-4 sm:h-4 bg-white border-2 sm:border-4 border-blue-500 rounded-full shadow-lg"></div>
+                  <div className="absolute left-4 sm:left-8 top-3 -translate-x-1/2 w-3 h-3 sm:w-4 sm:h-4 bg-white border-2 sm:border-4 border-blue-400 rounded-full shadow-md"></div>
 
                   {/* 时间节点 */}
-                  <div className="absolute left-[-4px] sm:left-[10px] top-8 sm:top-9 text-center">
-                    <div className="text-[10px] sm:text-xs font-semibold text-gray-700 whitespace-nowrap">
+                  <div className="absolute left-4 sm:left-8 top-8 sm:top-9 -translate-x-1/2 w-14 sm:w-16 text-center">
+                    <div className="text-[11px] sm:text-sm font-bold text-gray-800 whitespace-nowrap">
                       {monthDay}
                     </div>
-                    <div className="text-[8px] sm:text-[10px] text-gray-500">
+                    <div className="text-[9px] sm:text-xs text-gray-600">
                       {year}
                     </div>
                   </div>
