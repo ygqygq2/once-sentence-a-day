@@ -91,7 +91,7 @@ export default function Timeline({ initialSentences }: TimelineProps) {
     <div className="w-full bg-white rounded-lg shadow-md p-4 sm:p-6">
       <div className="relative">
         {/* 时间线 */}
-        <div className="absolute left-9 sm:left-9 top-0 bottom-0 w-0.5 bg-gradient-to-b from-blue-200 to-indigo-200"></div>
+        <div className="absolute left-[2.38rem] sm:left-[2.38rem] top-0 bottom-0 w-0.5 bg-gradient-to-b from-blue-200 to-indigo-200"></div>
 
           {/* 句子列表 */}
           <div className="space-y-6 sm:space-y-8">
@@ -106,10 +106,10 @@ export default function Timeline({ initialSentences }: TimelineProps) {
                   }}
                 >
                   {/* 时间点圆圈 */}
-                  <div className="absolute left-9 sm:left-9 top-3 -translate-x-1/2 w-3 h-3 sm:w-4 sm:h-4 bg-white border-2 sm:border-4 border-blue-400 rounded-full shadow-md"></div>
+                  <div className="absolute left-[2.425rem] sm:left-[2.425rem] top-3 -translate-x-1/2 w-3 h-3 sm:w-4 sm:h-4 bg-white border-2 sm:border-4 border-blue-400 rounded-full shadow-md"></div>
 
                   {/* 时间节点 */}
-                  <div className="absolute left-9 sm:left-9 top-8 sm:top-9 -translate-x-1/2 min-w-[3rem] text-center">
+                  <div className="absolute left-[2.425rem] sm:left-[2.425rem] top-8 sm:top-9 -translate-x-1/2 min-w-[3rem] text-center">
                     <div className="text-[11px] sm:text-sm font-bold text-gray-800 whitespace-nowrap">
                       {monthDay}
                     </div>
