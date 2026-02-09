@@ -15,12 +15,11 @@ interface RankedSentence extends Sentence {
 export default function TopLikes({ sentences }: TopLikesProps) {
   const [topSentences, setTopSentences] = useState<RankedSentence[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [itemsPerPage, setItemsPerPage] = useState(5); // 移动端默认5条
+  const [itemsPerPage, setItemsPerPage] = useState(10); // 初始值较大，等计算后更新
   const [currentPage, setCurrentPage] = useState(1);
   const [total, setTotal] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
-  const headerRef = useRef<HTMLDivElement>(null);
-  const paginationRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
   const firstItemRef = useRef<HTMLDivElement>(null);
 
   const sentenceMap = useMemo(() => {
@@ -69,21 +68,67 @@ export default function TopLikes({ sentences }: TopLikesProps) {
     };
   }, [currentPage, sentenceMap]);
 
-  // 根据屏幕尺寸设置每页条数（移动端5条，桌面端10条）
+  // 根据容器高度动态计算每页显示条数
   useEffect(() => {
-    const updateItemsPerPage = () => {
-      // lg 断点是 1024px
-      const isDesktop = window.matchMedia('(min-width: 1024px)').matches;
-      setItemsPerPage(isDesktop ? 10 : 5);
+    // 必须等数据加载完成且有内容才能计算
+    if (isLoading || !firstItemRef.current || !containerRef.current || !contentRef.current) {
+      return;
+    }
+
+    let resizeTimer: NodeJS.Timeout;
+    
+    const calculateItemsPerPage = () => {
+      const container = containerRef.current;
+      const content = contentRef.current;
+      const firstItem = firstItemRef.current;
+      
+      if (!container || !content || !firstItem) return;
+
+      // 获取容器总高度和内容区域的位置
+      const containerRect = container.getBoundingClientRect();
+      const contentRect = content.getBoundingClientRect();
+      
+      // 计算内容区域可用高度（容器底部 - 内容区域顶部 - 底部分页高度）
+      const paginationHeight = 60; // 预估分页高度
+      const availableHeight = containerRect.bottom - contentRect.top - paginationHeight;
+      
+      // 获取单个卡片的实际高度（包含间距）
+      const itemRect = firstItem.getBoundingClientRect();
+      const itemHeight = itemRect.height;
+      const gap = window.matchMedia('(min-width: 640px)').matches ? 10 : 8; // space-y
+      const totalItemHeight = itemHeight + gap;
+      
+      // 计算可以显示的条数：最少3条，最多20条
+      const calculated = Math.floor(availableHeight / totalItemHeight);
+      const items = Math.max(3, Math.min(20, calculated));
+      
+      setItemsPerPage(prev => {
+        // 如果是首次计算或差异较大才更新
+        if (prev === 10 || Math.abs(prev - items) >= 2) {
+          return items;
+        }
+        return prev;
+      });
     };
 
-    updateItemsPerPage();
-    window.addEventListener('resize', updateItemsPerPage);
+    // 防抖处理
+    const handleResize = () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(calculateItemsPerPage, 150);
+    };
+
+    // 首次计算需要短暂延迟，确保布局稳定
+    const initialTimer = setTimeout(calculateItemsPerPage, 100);
+
+    // 监听窗口大小变化
+    window.addEventListener('resize', handleResize);
 
     return () => {
-      window.removeEventListener('resize', updateItemsPerPage);
+      clearTimeout(resizeTimer);
+      clearTimeout(initialTimer);
+      window.removeEventListener('resize', handleResize);
     };
-  }, []);
+  }, [isLoading, topSentences.length]); // 依赖 isLoading 和数据长度
 
   const totalPages = useMemo(() => {
     return Math.max(1, Math.ceil(total / itemsPerPage));
@@ -115,14 +160,12 @@ export default function TopLikes({ sentences }: TopLikesProps) {
 
   return (
     <div ref={containerRef} className="bg-white rounded-lg shadow-md p-4 sm:p-5 lg:p-6 flex flex-col h-auto lg:h-full">
-      <div ref={headerRef}>
-        <h2 className="text-base sm:text-lg lg:text-xl font-bold text-gray-800 mb-3 sm:mb-4 flex items-center gap-2">
-          <span className="text-xl sm:text-2xl">🏆</span>
-          点赞排行榜
-        </h2>
-      </div>
+      <h2 className="text-base sm:text-lg lg:text-xl font-bold text-gray-800 mb-3 sm:mb-4 flex items-center gap-2">
+        <span className="text-xl sm:text-2xl">🏆</span>
+        点赞排行榜
+      </h2>
 
-      <div className="space-y-2 sm:space-y-2.5 flex-1 min-h-0">
+      <div ref={contentRef} className="space-y-2 sm:space-y-2.5 flex-1 min-h-0">
         {isLoading ? (
           <div className="space-y-3">
             {[1, 2, 3].map(i => (
@@ -182,7 +225,7 @@ export default function TopLikes({ sentences }: TopLikesProps) {
         )}
       </div>
 
-      <div ref={paginationRef} className="pt-2 sm:pt-3 mt-auto border-t">
+      <div className="pt-2 sm:pt-3 mt-auto border-t">
         {total > 0 && !isLoading && (
           <>
             {/* 移动端分页 */}
