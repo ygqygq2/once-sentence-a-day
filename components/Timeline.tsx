@@ -179,8 +179,8 @@ export default function Timeline({ initialSentences }: TimelineProps) {
                     color={{ base: "gray.700", _dark: "gray.200" }}
                     lineHeight="relaxed"
                     mb={3}
-                    noOfLines={2}
-                    _groupHover={{ noOfLines: "unset" }}
+                    lineClamp={2}
+                    _groupHover={{ lineClamp: "unset" }}
                     transition="all 0.2s"
                     title={sentence.content}
                   >
@@ -208,7 +208,7 @@ export default function Timeline({ initialSentences }: TimelineProps) {
           <Box ref={observerTarget} py={{ base: 6, sm: 8 }}>
             {isLoading && (
               <Center>
-                <Spinner size={{ base: "md", sm: "lg" }} color="blue.500" thickness="4px" />
+                <Spinner size={{ base: "md", sm: "lg" }} color="blue.500" />
               </Center>
             )}
           </Box>

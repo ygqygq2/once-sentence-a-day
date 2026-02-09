@@ -110,14 +110,17 @@ export default function LikeButton({ date, initialLikes, onLikeChange }: LikeBut
       opacity={isLoading ? 0.5 : 1}
       title={!canLike ? `${cooldownSeconds}秒后可再次点赞` : '点赞'}
     >
-      <Icon
-        as={HeartIcon}
-        filled={!canLike}
+      <Box
+        as="span"
+        display="inline-flex"
+        alignItems="center"
         boxSize={4}
         transition="all 0.2s"
         color={!canLike ? "pink.400" : "inherit"}
         _groupHover={canLike ? { fill: "pink.200" } : {}}
-      />
+      >
+        <HeartIcon filled={!canLike} />
+      </Box>
       <Text as="span" fontWeight="medium" ml={1.5}>
         {likes}
       </Text>
