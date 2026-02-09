@@ -1,37 +1,94 @@
 import { getAllSentences } from "@/lib/data";
 import Timeline from "@/components/Timeline";
 import TopLikes from "@/components/TopLikes";
+import { Box, Grid, GridItem, Heading, Text } from "@chakra-ui/react";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 export default async function Home() {
   const sentences = await getAllSentences();
 
   return (
-    <div className="w-full h-screen flex flex-col bg-gray-50 overflow-hidden">
+    <Box h="100vh" overflow="hidden" bg={{ base: "gray.50", _dark: "gray.900" }}>
       {/* 标题 */}
-      <header className="text-center py-3 sm:py-4 lg:py-6 bg-white shadow-sm flex-shrink-0">
-        <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 mb-0.5 sm:mb-1">每天一句话</h1>
-        <p className="text-xs sm:text-sm text-gray-600">每天随便一句话</p>
-      </header>
+      <Box
+        as="header"
+        textAlign="center"
+        py={{ base: 3, sm: 4, lg: 6 }}
+        bg={{ base: "white", _dark: "gray.800" }}
+        shadow="sm"
+        position="relative"
+        flexShrink={0}
+      >
+        <Box position="absolute" top={{ base: 2, sm: 3, lg: 4 }} right={{ base: 2, sm: 3, lg: 4 }}>
+          <ThemeToggle />
+        </Box>
+        <Heading
+          size={{ base: "lg", sm: "xl", lg: "2xl" }}
+          color={{ base: "gray.800", _dark: "white" }}
+          mb={{ base: 0.5, sm: 1 }}
+        >
+          每天一句话
+        </Heading>
+        <Text fontSize={{ base: "xs", sm: "sm" }} color={{ base: "gray.600", _dark: "gray.400" }}>
+          每天随便一句话
+        </Text>
+      </Box>
 
       {/* 响应式两列布局 */}
-      <div className="flex-1 max-w-7xl mx-auto w-full px-3 sm:px-4 lg:px-8 py-3 sm:py-4 overflow-y-auto lg:overflow-hidden">
-        <div className="flex flex-col lg:grid lg:grid-cols-12 gap-3 sm:gap-4 lg:gap-6 lg:h-full">
-          {/* 移动端：排行榜在上方，固定高度 */}
-          <aside className="lg:hidden w-full">
+      <Box
+        maxW="7xl"
+        mx="auto"
+        py={{ base: 3, sm: 4 }}
+        px={{ base: 3, sm: 4, lg: 8 }}
+        h="calc(100vh - 100px)"
+      >
+        <Grid
+          templateColumns={{ base: "1fr", lg: "2fr 1fr" }}
+          gap={{ base: 3, sm: 4, lg: 6 }}
+          h="full"
+        >
+          {/* 移动端：排行榜在上方 */}
+          <GridItem display={{ base: "block", lg: "none" }}>
             <TopLikes sentences={sentences} />
-          </aside>
+          </GridItem>
 
-          {/* 时间线（响应式滚动） */}
-          <div className="lg:col-span-8 flex-1 lg:h-full lg:overflow-y-auto lg:overscroll-contain">
+          {/* 时间线 */}
+          <GridItem 
+            h="full" 
+            overflowY="auto"
+            css={{
+              '&::-webkit-scrollbar': {
+                width: '6px',
+              },
+              '&::-webkit-scrollbar-track': {
+                background: 'transparent',
+              },
+              '&::-webkit-scrollbar-thumb': {
+                background: 'rgba(0, 0, 0, 0.1)',
+                borderRadius: '3px',
+              },
+              '&::-webkit-scrollbar-thumb:hover': {
+                background: 'rgba(0, 0, 0, 0.2)',
+              },
+              '_dark': {
+                '&::-webkit-scrollbar-thumb': {
+                  background: 'rgba(255, 255, 255, 0.1)',
+                },
+                '&::-webkit-scrollbar-thumb:hover': {
+                  background: 'rgba(255, 255, 255, 0.2)',
+                },
+              },
+            }}
+          >
             <Timeline initialSentences={sentences} />
-          </div>
+          </GridItem>
 
-          {/* 桌面端：排行榜在右侧，固定高度不滚动 */}
-          <aside className="hidden lg:block lg:col-span-4 lg:h-full">
+          {/* 桌面端：排行榜在右侧 */}
+          <GridItem display={{ base: "none", lg: "block" }} h="full">
             <TopLikes sentences={sentences} />
-          </aside>
-        </div>
-      </div>
-    </div>
+          </GridItem>
+        </Grid>
+      </Box>
+    </Box>
   );
 }

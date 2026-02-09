@@ -3,6 +3,7 @@
 import { Sentence } from '@/lib/data';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { getTopLikes } from '@/lib/cloudflare-api';
+import { Box, Button, Flex, HStack, Skeleton, Text, VStack, Icon } from '@chakra-ui/react';
 
 interface TopLikesProps {
   sentences: Sentence[];
@@ -152,147 +153,189 @@ export default function TopLikes({ sentences }: TopLikesProps) {
     return Array.from({ length: end - start + 1 }, (_, i) => start + i);
   }, [currentPage, totalPages]);
 
-  // 格式化日期
   const formatDate = (dateStr: string) => {
     const [year, month, day] = dateStr.split('-');
     return `${parseInt(month)}月${parseInt(day)}日`;
   };
 
+  const HeartIcon = () => (
+    <svg width="1em" height="1em" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+    </svg>
+  );
+
   return (
-    <div ref={containerRef} className="bg-white rounded-lg shadow-md p-4 sm:p-5 lg:p-6 flex flex-col h-auto lg:h-full">
-      <h2 className="text-base sm:text-lg lg:text-xl font-bold text-gray-800 mb-3 sm:mb-4 flex items-center gap-2">
-        <span className="text-xl sm:text-2xl">🏆</span>
-        点赞排行榜
-      </h2>
+    <Box
+      ref={containerRef}
+      bg={{ base: "white", _dark: "gray.800" }}
+      rounded="lg"
+      shadow="md"
+      p={{ base: 4, sm: 5, lg: 6 }}
+      display="flex"
+      flexDirection="column"
+      h="full"
+      overflow="hidden"
+    >
+      <Flex align="center" gap={2} mb={{ base: 3, sm: 4 }}>
+        <Text fontSize={{ base: "xl", sm: "2xl" }}>🏆</Text>
+        <Text fontSize={{ base: "base", sm: "lg", lg: "xl" }} fontWeight="bold" color={{ base: "gray.800", _dark: "white" }}>
+          点赞排行榜
+        </Text>
+      </Flex>
 
-      <div ref={contentRef} className="space-y-2 sm:space-y-2.5 flex-1 min-h-0">
+      <VStack ref={contentRef} gap={{ base: 2, sm: 2.5 }} flex="1" minH="0" align="stretch">
         {isLoading ? (
-          <div className="space-y-3">
+          <VStack gap={3}>
             {[1, 2, 3].map(i => (
-              <div key={i} className="animate-pulse">
-                <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-                <div className="h-3 bg-gray-100 rounded w-1/2"></div>
-              </div>
+              <Box key={i}>
+                <Skeleton h={4} w="75%" mb={2} />
+                <Skeleton h={3} w="50%" />
+              </Box>
             ))}
-          </div>
+          </VStack>
         ) : total === 0 ? (
-          <p className="text-gray-500 text-sm text-center py-8">暂无点赞数据</p>
+          <Text color={{ base: "gray.500", _dark: "gray.400" }} fontSize="sm" textAlign="center" py={8}>
+            暂无点赞数据
+          </Text>
         ) : (
-          topSentences.map((sentence, index) => (
-            <div
-              key={sentence.date}
-              ref={index === 0 ? firstItemRef : undefined}
-              className="flex items-start gap-2 sm:gap-3 p-2.5 sm:p-3 rounded-lg hover:bg-gray-50 transition-colors min-h-[60px] sm:min-h-[68px]"
-            >
-              {/* 排名 */}
-              {(() => {
-                const rank = index + 1 + (currentPage - 1) * itemsPerPage;
-                if (rank === 1) {
-                  return <div className="flex-shrink-0 w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center text-lg sm:text-xl">🥇</div>;
-                } else if (rank === 2) {
-                  return <div className="flex-shrink-0 w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center text-lg sm:text-xl">🥈</div>;
-                } else if (rank === 3) {
-                  return <div className="flex-shrink-0 w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center text-lg sm:text-xl">🥉</div>;
-                } else {
-                  return (
-                    <div className={`
-                      flex-shrink-0 w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center text-xs font-bold
-                      ${rank === 4 ? 'bg-gradient-to-br from-blue-400 to-blue-500 text-white shadow-sm' : ''}
-                      ${rank === 5 ? 'bg-gradient-to-br from-purple-400 to-purple-500 text-white shadow-sm' : ''}
-                      ${rank > 5 ? 'bg-gray-200 text-gray-600' : ''}
-                    `}>
+          topSentences.map((sentence, index) => {
+            const rank = index + 1 + (currentPage - 1) * itemsPerPage;
+            return (
+              <Flex
+                key={sentence.date}
+                ref={index === 0 ? firstItemRef : undefined}
+                align="flex-start"
+                gap={{ base: 2, sm: 3 }}
+                p={{ base: 2.5, sm: 3 }}
+                rounded="lg"
+                _hover={{ bg: { base: "gray.50", _dark: "gray.700" } }}
+                transition="all 0.2s"
+                minH={{ base: "60px", sm: "68px" }}
+              >
+                {/* 排名 */}
+                <Box flexShrink={0} w={{ base: rank <= 3 ? 6 : 5, sm: rank <= 3 ? 7 : 6 }} h={{ base: rank <= 3 ? 6 : 5, sm: rank <= 3 ? 7 : 6 }}>
+                  {rank === 1 ? (
+                    <Text fontSize={{ base: "lg", sm: "xl" }}>🥇</Text>
+                  ) : rank === 2 ? (
+                    <Text fontSize={{ base: "lg", sm: "xl" }}>🥈</Text>
+                  ) : rank === 3 ? (
+                    <Text fontSize={{ base: "lg", sm: "xl" }}>🥉</Text>
+                  ) : (
+                    <Flex
+                      w="full"
+                      h="full"
+                      rounded="full"
+                      align="center"
+                      justify="center"
+                      fontSize="xs"
+                      fontWeight="bold"
+                      bg={rank === 4 ? "blue.400" : rank === 5 ? "purple.400" : { base: "gray.200", _dark: "gray.600" }}
+                      color={rank <= 5 ? "white" : { base: "gray.600", _dark: "gray.300" }}
+                      bgGradient={rank === 4 ? "to-br" : rank === 5 ? "to-br" : undefined}
+                      gradientFrom={rank === 4 ? "blue.400" : rank === 5 ? "purple.400" : undefined}
+                      gradientTo={rank === 4 ? "blue.500" : rank === 5 ? "purple.500" : undefined}
+                      shadow={rank <= 5 ? "sm" : undefined}
+                    >
                       {rank}
-                    </div>
-                  );
-                }
-              })()}
+                    </Flex>
+                  )}
+                </Box>
 
-              {/* 内容 */}
-              <div className="flex-1 min-w-0">
-                <p className="text-xs text-gray-500 mb-0.5 sm:mb-1">{formatDate(sentence.date)}</p>
-                <p className="text-xs sm:text-sm text-gray-700 line-clamp-2">{sentence.content}</p>
-              </div>
+                <Box flex="1" minW="0">
+                  <Text fontSize="xs" color={{ base: "gray.500", _dark: "gray.400" }} mb={{ base: 0.5, sm: 1 }}>
+                    {formatDate(sentence.date)}
+                  </Text>
+                  <Text fontSize={{ base: "xs", sm: "sm" }} color={{ base: "gray.700", _dark: "gray.200" }} lineClamp={2}>
+                    {sentence.content}
+                  </Text>
+                </Box>
 
-              {/* 点赞数 */}
-              <div className="flex-shrink-0 flex items-center gap-0.5 sm:gap-1 text-pink-600">
-                <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-current" viewBox="0 0 24 24">
-                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-                </svg>
-                <span className="text-xs sm:text-sm font-semibold">{sentence.likes}</span>
-              </div>
-            </div>
-          ))
+                {/* 点赞数 */}
+                <Flex flexShrink={0} align="center" gap={{ base: 0.5, sm: 1 }} color="pink.600">
+                  <Icon as={HeartIcon} boxSize={{ base: 3.5, sm: 4 }} />
+                  <Text fontSize={{ base: "xs", sm: "sm" }} fontWeight="semibold">
+                    {sentence.likes}
+                  </Text>
+                </Flex>
+              </Flex>
+            );
+          })
         )}
-      </div>
+      </VStack>
 
-      <div className="pt-2 sm:pt-3 mt-auto border-t">
+      <Box 
+        pt={{ base: 2, sm: 3 }} 
+        mt="auto" 
+        borderTop="1px" 
+        borderColor={{ base: "gray.200", _dark: "gray.700" }}
+        flexShrink={0}
+      >
         {total > 0 && !isLoading && (
           <>
             {/* 移动端分页 */}
-            <div className="flex sm:hidden items-center justify-between gap-2 text-xs">
-              <button
-                type="button"
+            <Flex display={{ base: "flex", sm: "none" }} align="center" justify="space-between" gap={2} fontSize="xs">
+              <Button
+                size="sm"
+                variant="outline"
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 disabled={currentPage === 1}
-                className="px-2 py-1 rounded border text-gray-600 disabled:text-gray-300 disabled:border-gray-200 hover:bg-gray-50 active:bg-gray-100"
               >
                 上一页
-              </button>
+              </Button>
               
-              <span className="text-gray-600">
+              <Text color={{ base: "gray.600", _dark: "gray.400" }}>
                 {currentPage} / {totalPages}
-              </span>
+              </Text>
 
-              <button
-                type="button"
+              <Button
+                size="sm"
+                variant="outline"
                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                 disabled={currentPage === totalPages}
-                className="px-2 py-1 rounded border text-gray-600 disabled:text-gray-300 disabled:border-gray-200 hover:bg-gray-50 active:bg-gray-100"
               >
                 下一页
-              </button>
-            </div>
+              </Button>
+            </Flex>
 
             {/* 桌面端分页 */}
-            <div className="hidden sm:flex items-center justify-between gap-2 text-sm">
-              <button
-                type="button"
+            <Flex display={{ base: "none", sm: "flex" }} align="center" justify="space-between" gap={2} fontSize="sm">
+              <Button
+                size="sm"
+                variant="outline"
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 disabled={currentPage === 1}
-                className="px-2 py-1 rounded border text-gray-600 disabled:text-gray-300 disabled:border-gray-200 hover:bg-gray-50"
               >
                 上一页
-              </button>
+              </Button>
 
-              <div className="flex items-center gap-1">
+              <HStack gap={1}>
                 {pageNumbers.map((page) => (
-                  <button
+                  <Button
                     key={page}
-                    type="button"
+                    size="xs"
+                    variant={page === currentPage ? "solid" : "outline"}
+                    colorPalette={page === currentPage ? "pink" : "gray"}
                     onClick={() => setCurrentPage(page)}
-                    className={`w-7 h-7 rounded text-xs border ${
-                      page === currentPage
-                        ? 'bg-pink-50 border-pink-300 text-pink-600'
-                        : 'text-gray-600 border-gray-200 hover:bg-gray-50'
-                    }`}
+                    minW={7}
+                    h={7}
                   >
                     {page}
-                  </button>
+                  </Button>
                 ))}
-              </div>
+              </HStack>
 
-              <button
-                type="button"
+              <Button
+                size="sm"
+                variant="outline"
                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                 disabled={currentPage === totalPages}
-                className="px-2 py-1 rounded border text-gray-600 disabled:text-gray-300 disabled:border-gray-200 hover:bg-gray-50"
               >
                 下一页
-              </button>
-            </div>
+              </Button>
+            </Flex>
           </>
         )}
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 }

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import "./globals.css";
+import { Provider } from "@/components/ui/provider";
 
 export const metadata: Metadata = {
   title: "每天一句话",
@@ -12,9 +12,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="zh-CN">
-      <body className="antialiased bg-gradient-to-br from-blue-50 to-indigo-50 min-h-screen">
-        {children}
+    <html lang="zh-CN" suppressHydrationWarning>
+      <body>
+        <Provider>{children}</Provider>
       </body>
     </html>
   );

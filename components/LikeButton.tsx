@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { addLike, hasLiked, markAsLiked } from '@/lib/cloudflare-api';
+import { Button, Icon, Text, Box } from '@chakra-ui/react';
 
 interface LikeButtonProps {
   date: string;
@@ -57,15 +58,13 @@ export default function LikeButton({ date, initialLikes, onLikeChange }: LikeBut
       setLikes(result.likes);
       onLikeChange?.(result.likes);
       
-      // 设置30秒冷却
       const cooldownKey = `cooldown:${date}`;
-      const cooldownEnd = Date.now() + 30000; // 30秒
+      const cooldownEnd = Date.now() + 30000;
       localStorage.setItem(cooldownKey, cooldownEnd.toString());
       
       setCanLike(false);
       setCooldownSeconds(30);
       
-      // 启动倒计时
       const timer = setInterval(() => {
         const remaining = parseInt(localStorage.getItem(cooldownKey) || '0') - Date.now();
         if (remaining <= 0) {
@@ -77,41 +76,69 @@ export default function LikeButton({ date, initialLikes, onLikeChange }: LikeBut
         }
       }, 1000);
     } else {
-      // 显示错误但不阻止再次点击
       console.error(result.error || '点赞失败');
     }
 
     setIsLoading(false);
   };
 
+  const HeartIcon = ({ filled }: { filled: boolean }) => (
+    <svg width="1em" height="1em" viewBox="0 0 24 24" fill={filled ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2">
+      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+    </svg>
+  );
+
   return (
-    <button
+    <Button
       onClick={handleLike}
       disabled={!canLike || isLoading}
-      className={`
-        flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm
-        transition-all duration-200 relative
-        ${!canLike
-          ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
-          : 'bg-gray-100 hover:bg-pink-50 text-gray-600 hover:text-pink-600 hover:scale-105 cursor-pointer'
-        }
-        ${isLoading ? 'opacity-50' : ''}
-      `}
+      size="sm"
+      px={3}
+      py={1.5}
+      rounded="full"
+      fontSize="sm"
+      transition="all 0.2s"
+      position="relative"
+      bg={!canLike ? { base: "gray.200", _dark: "gray.600" } : { base: "gray.100", _dark: "gray.700" }}
+      color={!canLike ? { base: "gray.400", _dark: "gray.500" } : { base: "gray.600", _dark: "gray.300" }}
+      _hover={canLike ? {
+        bg: { base: "pink.50", _dark: "pink.900" },
+        color: "pink.600",
+        transform: "scale(1.05)"
+      } : {}}
+      cursor={!canLike ? "not-allowed" : "pointer"}
+      opacity={isLoading ? 0.5 : 1}
       title={!canLike ? `${cooldownSeconds}秒后可再次点赞` : '点赞'}
     >
-      <svg 
-        className={`w-4 h-4 transition-all ${!canLike ? 'fill-pink-400' : 'fill-transparent stroke-current hover:fill-pink-200'}`}
-        viewBox="0 0 24 24" 
-        strokeWidth="2"
-      >
-        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-      </svg>
-      <span className="font-medium">{likes}</span>
+      <Icon
+        as={HeartIcon}
+        filled={!canLike}
+        boxSize={4}
+        transition="all 0.2s"
+        color={!canLike ? "pink.400" : "inherit"}
+        _groupHover={canLike ? { fill: "pink.200" } : {}}
+      />
+      <Text as="span" fontWeight="medium" ml={1.5}>
+        {likes}
+      </Text>
       {!canLike && cooldownSeconds > 0 && (
-        <span className="absolute -top-1 -right-1 bg-gray-500 text-white text-[10px] rounded-full w-5 h-5 flex items-center justify-center">
+        <Box
+          position="absolute"
+          top="-1"
+          right="-1"
+          bg={{ base: "gray.500", _dark: "gray.400" }}
+          color="white"
+          fontSize="10px"
+          rounded="full"
+          w={5}
+          h={5}
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
+        >
           {cooldownSeconds}
-        </span>
+        </Box>
       )}
-    </button>
+    </Button>
   );
 }
