@@ -98,7 +98,7 @@ export default function TopLikes({ sentences }: TopLikesProps) {
         ranked.forEach((item) => {
           likesData[item.date] = item.likes;
         });
-        setLikes((prev) => ({ ...prev, ...likesData }));
+        setLikes(likesData);
       } catch (error) {
         console.error('Failed to fetch likes:', error);
       } finally {
@@ -238,7 +238,7 @@ export default function TopLikes({ sentences }: TopLikesProps) {
                 <Box flexShrink={0}>
                   <LikeButton
                     date={sentence.date}
-                    initialLikes={likes[sentence.date] || sentence.likes}
+                    initialLikes={likes[sentence.date] || 0}
                     onLikeChange={(newCount) => {
                       setLikes(prev => ({ ...prev, [sentence.date]: newCount }));
                       // Update the sentence likes in the topSentences array as well
