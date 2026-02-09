@@ -41,9 +41,9 @@ export default async function Home() {
         py={{ base: 3, sm: 4 }}
         px={{ base: 3, sm: 4, lg: 8 }}
         h={{
-          base: "calc(100vh - 80px)",  // 移动端: py=3*2 + 标题内容 ≈ 80px
-          sm: "calc(100vh - 95px)",    // 平板: py=4*2 + 标题内容 ≈ 95px  
-          lg: "calc(100vh - 115px)"    // 桌面: py=6*2 + 标题内容 ≈ 115px
+          base: "calc(100vh - 80px)",  // 移动端: 标题区域高度约80px (py=3*2 + 标题 + 副标题 + theme toggle)
+          sm: "calc(100vh - 95px)",    // 平板: 标题区域高度约95px (py=4*2 + 标题 + 副标题 + theme toggle)
+          lg: "calc(100vh - 115px)"    // 桌面: 标题区域高度约115px (py=6*2 + 标题 + 副标题 + theme toggle)
         }}
       >
         <Grid
