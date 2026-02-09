@@ -10,6 +10,20 @@ interface LikeButtonProps {
   onLikeChange?: (newCount: number) => void;
 }
 
+// 格式化数字，添加 k、m、b 后缀
+function formatNumber(num: number): string {
+  if (num >= 1000000000) {
+    return (num / 1000000000).toFixed(1).replace(/\.0$/, '') + 'b';
+  }
+  if (num >= 1000000) {
+    return (num / 1000000).toFixed(1).replace(/\.0$/, '') + 'm';
+  }
+  if (num >= 1000) {
+    return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'k';
+  }
+  return num.toString();
+}
+
 export default function LikeButton({ date, initialLikes, onLikeChange }: LikeButtonProps) {
   const [likes, setLikes] = useState(initialLikes);
   const [canLike, setCanLike] = useState(true);
@@ -110,16 +124,19 @@ export default function LikeButton({ date, initialLikes, onLikeChange }: LikeBut
       opacity={isLoading ? 0.5 : 1}
       title={!canLike ? `${cooldownSeconds}秒后可再次点赞` : '点赞'}
     >
-      <Icon
-        as={HeartIcon}
-        filled={!canLike}
+      <Box
+        as="span"
+        display="inline-flex"
+        alignItems="center"
         boxSize={4}
         transition="all 0.2s"
         color={!canLike ? "pink.400" : "inherit"}
         _groupHover={canLike ? { fill: "pink.200" } : {}}
-      />
+      >
+        <HeartIcon filled={!canLike} />
+      </Box>
       <Text as="span" fontWeight="medium" ml={1.5}>
-        {likes}
+        {formatNumber(likes)}
       </Text>
       {!canLike && cooldownSeconds > 0 && (
         <Box

@@ -11,6 +11,8 @@ interface TimelineProps {
 }
 
 const ITEMS_PER_PAGE = 10;
+// 用于 lineClamp hover 时显示全部内容的大数值
+const MAX_LINE_CLAMP = 999;
 
 // 格式化日期显示
 function formatDate(dateStr: string) {
@@ -179,8 +181,8 @@ export default function Timeline({ initialSentences }: TimelineProps) {
                     color={{ base: "gray.700", _dark: "gray.200" }}
                     lineHeight="relaxed"
                     mb={3}
-                    noOfLines={2}
-                    _groupHover={{ noOfLines: "unset" }}
+                    lineClamp={2}
+                    _groupHover={{ lineClamp: MAX_LINE_CLAMP }}
                     transition="all 0.2s"
                     title={sentence.content}
                   >
@@ -208,7 +210,7 @@ export default function Timeline({ initialSentences }: TimelineProps) {
           <Box ref={observerTarget} py={{ base: 6, sm: 8 }}>
             {isLoading && (
               <Center>
-                <Spinner size={{ base: "md", sm: "lg" }} color="blue.500" thickness="4px" />
+                <Spinner size={{ base: "md", sm: "lg" }} color="blue.500" />
               </Center>
             )}
           </Box>
