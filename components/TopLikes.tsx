@@ -246,6 +246,7 @@ export default function TopLikes({ sentences }: TopLikesProps) {
                   <Text fontSize="xs" color={{ base: "gray.500", _dark: "gray.400" }} mb={{ base: 0.5, sm: 1 }}>
                     {formatDate(sentence.date)}
                   </Text>
+                  {/* Show tooltip for content likely to be truncated (>50 chars) */}
                   <Tooltip 
                     content={sentence.content} 
                     showArrow
