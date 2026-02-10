@@ -4,7 +4,6 @@ import { Sentence } from '@/lib/data';
 import { useEffect, useMemo, useState } from 'react';
 import { getTopLikes } from '@/lib/cloudflare-api';
 import { Box, Button, Flex, HStack, Skeleton, Text, VStack } from '@chakra-ui/react';
-import { Tooltip } from '@/components/ui/tooltip';
 import LikeButton from './LikeButton';
 
 interface TopLikesProps {
@@ -14,6 +13,9 @@ interface TopLikesProps {
 interface RankedSentence extends Sentence {
   likes: number;
 }
+
+// 用于 lineClamp hover 时显示全部内容的大数值
+const MAX_LINE_CLAMP = 999;
 
 /**
  * 根据视口高度计算排行榜每页显示条数
@@ -188,6 +190,7 @@ export default function TopLikes({ sentences }: TopLikesProps) {
                 _hover={{ bg: { base: "gray.50", _dark: "gray.700" } }}
                 transition="all 0.2s"
                 minH={{ base: "60px", sm: "68px" }}
+                role="group"
               >
                 {/* 排名 */}
                 <Box flexShrink={0} w={{ base: rank <= 3 ? 6 : 5, sm: rank <= 3 ? 7 : 6 }} h={{ base: rank <= 3 ? 6 : 5, sm: rank <= 3 ? 7 : 6 }}>
@@ -222,16 +225,17 @@ export default function TopLikes({ sentences }: TopLikesProps) {
                   <Text fontSize="xs" color={{ base: "gray.500", _dark: "gray.400" }} mb={{ base: 0.5, sm: 1 }}>
                     {formatDate(sentence.date)}
                   </Text>
-                  {/* Show tooltip for content likely to be truncated (>50 chars) */}
-                  <Tooltip 
-                    content={sentence.content} 
-                    showArrow
-                    disabled={sentence.content.length <= 50}
+                  {/* Content - default truncated, hover to show full */}
+                  <Text 
+                    fontSize={{ base: "xs", sm: "sm" }} 
+                    color={{ base: "gray.700", _dark: "gray.200" }} 
+                    lineClamp={2}
+                    _groupHover={{ lineClamp: MAX_LINE_CLAMP }}
+                    transition="all 0.2s"
+                    title={sentence.content}
                   >
-                    <Text fontSize={{ base: "xs", sm: "sm" }} color={{ base: "gray.700", _dark: "gray.200" }} lineClamp={2}>
-                      {sentence.content}
-                    </Text>
-                  </Tooltip>
+                    {sentence.content}
+                  </Text>
                 </Box>
 
                 {/* 点赞按钮 */}
