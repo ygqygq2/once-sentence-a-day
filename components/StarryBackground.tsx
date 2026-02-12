@@ -30,6 +30,7 @@ export default function StarryBackground() {
   const meteorsRef = useRef<Meteor[]>([])
   const animationFrameRef = useRef(0)
   const lastMeteorTimeRef = useRef<number>(0)
+  const meteorTimersRef = useRef<number[]>([])
 
   useEffect(() => {
     if (!shouldShow) return
@@ -84,10 +85,7 @@ export default function StarryBackground() {
 
     // Animation loop
     const animate = (timestamp: number) => {
-      // Clear canvas completely to avoid gray traces
-      ctx.clearRect(0, 0, canvas.width, canvas.height)
-      
-      // Redraw background
+      // Redraw background (fillRect overwrites all pixels, no need for clearRect)
       ctx.fillStyle = "rgb(17, 24, 39)"
       ctx.fillRect(0, 0, canvas.width, canvas.height)
 
@@ -119,7 +117,8 @@ export default function StarryBackground() {
         // Create 2-3 meteors at once with slight variation in timing
         const meteorCount = Math.floor(Math.random() * 2) + 2 // 2-3 meteors
         for (let i = 0; i < meteorCount; i++) {
-          setTimeout(() => createMeteor(), i * (100 + Math.random() * 200))
+          const timerId = window.setTimeout(() => createMeteor(), i * (100 + Math.random() * 200))
+          meteorTimersRef.current.push(timerId)
         }
         lastMeteorTimeRef.current = timestamp
       }
@@ -215,6 +214,9 @@ export default function StarryBackground() {
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current)
       }
+      // Clear all pending meteor timers
+      meteorTimersRef.current.forEach(timerId => clearTimeout(timerId))
+      meteorTimersRef.current = []
     }
   }, [shouldShow])
 
