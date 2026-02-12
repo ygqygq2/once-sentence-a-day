@@ -11,6 +11,8 @@ interface Star {
   opacity: number
   twinkleSpeed: number
   twinklePhase: number
+  fadeIn: boolean
+  targetOpacity: number
 }
 
 interface Meteor {
@@ -46,14 +48,17 @@ export default function StarryBackground() {
       starsRef.current = []
       const starCount = Math.floor((canvas.width * canvas.height) / 8000) // Density of stars
       for (let i = 0; i < starCount; i++) {
+        const opacity = Math.random() * 0.5 + 0.5
         starsRef.current.push({
           x: Math.random() * canvas.width,
           y: Math.random() * canvas.height,
           size: Math.random() * 2 + 0.5,
           speed: Math.random() * 0.05 + 0.02,
-          opacity: Math.random() * 0.5 + 0.5,
+          opacity: opacity,
           twinkleSpeed: Math.random() * 0.02 + 0.01,
           twinklePhase: Math.random() * Math.PI * 2,
+          fadeIn: Math.random() > 0.5,
+          targetOpacity: opacity,
         })
       }
     }
@@ -94,7 +99,30 @@ export default function StarryBackground() {
         // Twinkling effect
         star.twinklePhase += star.twinkleSpeed
         const twinkle = Math.sin(star.twinklePhase) * 0.3 + 0.7
-        const currentOpacity = star.opacity * twinkle
+        
+        // Fade in/out effect - some stars appear and disappear
+        if (star.fadeIn) {
+          star.opacity += 0.002
+          if (star.opacity >= star.targetOpacity) {
+            star.fadeIn = false
+            // Randomly decide to start fading out or keep twinkling
+            if (Math.random() > 0.7) {
+              star.targetOpacity = 0
+            }
+          }
+        } else {
+          star.opacity -= 0.001
+          if (star.opacity <= 0) {
+            // Reset star - it will reappear
+            star.opacity = 0
+            star.fadeIn = true
+            star.targetOpacity = Math.random() * 0.5 + 0.5
+            star.x = Math.random() * canvas.width
+            star.y = Math.random() * canvas.height
+          }
+        }
+        
+        const currentOpacity = Math.max(0, star.opacity * twinkle)
 
         ctx.fillStyle = `rgba(255, 255, 255, ${currentOpacity})`
         ctx.beginPath()
@@ -102,7 +130,7 @@ export default function StarryBackground() {
         ctx.fill()
 
         // Add glow for larger stars
-        if (star.size > 1.5) {
+        if (star.size > 1.5 && currentOpacity > 0.3) {
           ctx.shadowBlur = 3
           ctx.shadowColor = `rgba(255, 255, 255, ${currentOpacity * 0.5})`
           ctx.beginPath()
@@ -144,35 +172,54 @@ export default function StarryBackground() {
         // Fade out slower for longer visibility
         meteor.opacity -= 0.005
 
-        // Draw meteor trail - more continuous rendering
-        if (meteor.trail.length > 1) {
+        // Draw meteor trail - using filled path for smooth continuous appearance
+        if (meteor.trail.length > 2) {
+          ctx.save()
+          ctx.globalCompositeOperation = 'lighter'
+          
+          // Draw trail as a tapered shape using quadratic curves for smoothness
           for (let i = 0; i < meteor.trail.length - 1; i++) {
             const point = meteor.trail[i]
             const nextPoint = meteor.trail[i + 1]
+            
             // Calculate progress from tail (0) to head (1)
             const trailProgress = i / meteor.trail.length
-            // Reverse the opacity calculation: brightest at head, dimmest at tail
-            const opacity = point.opacity * trailProgress * 0.9
-
-            // Create gradient for meteor tail with reversed brightness
-            const gradient = ctx.createLinearGradient(
-              point.x, point.y,
-              nextPoint.x, nextPoint.y
-            )
-            gradient.addColorStop(0, `rgba(100, 150, 255, ${opacity * 0.2})`)
-            gradient.addColorStop(0.5, `rgba(150, 180, 255, ${opacity * 0.5})`)
-            gradient.addColorStop(1, `rgba(200, 220, 255, ${opacity})`)
-
-            ctx.strokeStyle = gradient
-            // Thickest at head (when trailProgress is high), thinnest at tail
-            ctx.lineWidth = 1 + trailProgress * 4
-            ctx.lineCap = 'round' // Make lines smooth and continuous
-            ctx.lineJoin = 'round' // Make connections smooth
-            ctx.beginPath()
-            ctx.moveTo(point.x, point.y)
-            ctx.lineTo(nextPoint.x, nextPoint.y)
-            ctx.stroke()
+            // Opacity brightest at head, dimmest at tail
+            const opacity = point.opacity * trailProgress * 0.8
+            
+            // Width tapers from tail to head
+            const width = 0.5 + trailProgress * 3.5
+            
+            // Calculate perpendicular offset for width
+            const dx = nextPoint.x - point.x
+            const dy = nextPoint.y - point.y
+            const length = Math.sqrt(dx * dx + dy * dy)
+            
+            if (length > 0) {
+              const perpX = -dy / length * width
+              const perpY = dx / length * width
+              
+              // Draw filled quadrilateral with gradient
+              const gradient = ctx.createLinearGradient(
+                point.x, point.y,
+                nextPoint.x, nextPoint.y
+              )
+              gradient.addColorStop(0, `rgba(120, 160, 255, ${opacity * 0.3})`)
+              gradient.addColorStop(0.5, `rgba(160, 190, 255, ${opacity * 0.6})`)
+              gradient.addColorStop(1, `rgba(200, 220, 255, ${opacity})`)
+              
+              ctx.fillStyle = gradient
+              ctx.beginPath()
+              ctx.moveTo(point.x - perpX, point.y - perpY)
+              ctx.lineTo(point.x + perpX, point.y + perpY)
+              ctx.lineTo(nextPoint.x + perpX, nextPoint.y + perpY)
+              ctx.lineTo(nextPoint.x - perpX, nextPoint.y - perpY)
+              ctx.closePath()
+              ctx.fill()
+            }
           }
+          
+          ctx.restore()
         }
 
         // Draw meteor head with enhanced size and glow
