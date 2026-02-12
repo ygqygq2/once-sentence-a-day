@@ -16,7 +16,7 @@ export default function RainbowCursor() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const particlesRef = useRef<Particle[]>([])
   const mouseRef = useRef({ x: 0, y: 0 })
-  const animationFrameRef = useRef<number | undefined>(undefined)
+  const animationFrameRef = useRef(0)
   const hueRef = useRef(0)
 
   useEffect(() => {
@@ -91,6 +91,10 @@ export default function RainbowCursor() {
         // Add glow effect
         ctx.shadowBlur = 10
         ctx.shadowColor = `hsl(${particle.hue}, 100%, 60%)`
+        ctx.beginPath()
+        ctx.arc(particle.x, particle.y, particle.size * (1 - progress * 0.5), 0, Math.PI * 2)
+        ctx.fill()
+        ctx.shadowBlur = 0
       })
 
       animationFrameRef.current = requestAnimationFrame(animate)

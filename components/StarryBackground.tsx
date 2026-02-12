@@ -28,7 +28,7 @@ export default function StarryBackground() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const starsRef = useRef<Star[]>([])
   const meteorsRef = useRef<Meteor[]>([])
-  const animationFrameRef = useRef<number | undefined>(undefined)
+  const animationFrameRef = useRef(0)
   const lastMeteorTimeRef = useRef<number>(0)
 
   useEffect(() => {
