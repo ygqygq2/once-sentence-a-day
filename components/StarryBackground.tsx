@@ -40,15 +40,6 @@ export default function StarryBackground() {
     const ctx = canvas.getContext("2d")
     if (!ctx) return
 
-    // Set canvas size
-    const resizeCanvas = () => {
-      canvas.width = window.innerWidth
-      canvas.height = window.innerHeight
-      initStars()
-    }
-    resizeCanvas()
-    window.addEventListener("resize", resizeCanvas)
-
     // Initialize stars
     const initStars = () => {
       starsRef.current = []
@@ -66,7 +57,14 @@ export default function StarryBackground() {
       }
     }
 
-    initStars()
+    // Set canvas size
+    const resizeCanvas = () => {
+      canvas.width = window.innerWidth
+      canvas.height = window.innerHeight
+      initStars()
+    }
+    resizeCanvas()
+    window.addEventListener("resize", resizeCanvas)
 
     // Create a new meteor
     const createMeteor = () => {
