@@ -74,7 +74,7 @@ export default function StarryBackground() {
 
     // Create a new meteor
     const createMeteor = () => {
-      const startX = Math.random() * canvas.width * 0.5 + canvas.width * 0.25
+      const startX = Math.random() * canvas.width
       const startY = Math.random() * canvas.height * 0.3
       
       meteorsRef.current.push({

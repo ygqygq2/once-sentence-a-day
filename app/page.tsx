@@ -9,7 +9,7 @@ export default async function Home() {
   const sentences = await getAllSentences();
 
   return (
-    <Box h="100vh" overflow="hidden" bg={{ base: "gray.50", _dark: "gray.900" }}>
+    <Box h="100vh" overflow="hidden" bg="transparent">
       <VisualEffects />
       {/* 标题 */}
       <Box
@@ -20,6 +20,7 @@ export default async function Home() {
         shadow="sm"
         position="relative"
         flexShrink={0}
+        zIndex={1}
       >
         <Box position="absolute" top={{ base: 2, sm: 3, lg: 4 }} right={{ base: 2, sm: 3, lg: 4 }}>
           <ThemeToggle />
@@ -47,14 +48,17 @@ export default async function Home() {
           sm: "calc(100vh - 95px)",    // 平板: 标题区域高度约95px (py=4*2 + 标题 + 副标题 + theme toggle)
           lg: "calc(100vh - 115px)"    // 桌面: 标题区域高度约115px (py=6*2 + 标题 + 副标题 + theme toggle)
         }}
+        position="relative"
+        zIndex={1}
       >
         <Grid
           templateColumns={{ base: "1fr", lg: "2fr 1fr" }}
           gap={{ base: 3, sm: 4, lg: 6 }}
           h="full"
+          bg="transparent"
         >
           {/* 移动端：排行榜在上方 */}
-          <GridItem display={{ base: "block", lg: "none" }} h="full">
+          <GridItem display={{ base: "block", lg: "none" }} h="full" bg="transparent">
             <TopLikes sentences={sentences} />
           </GridItem>
 
@@ -62,6 +66,7 @@ export default async function Home() {
           <GridItem 
             h="full" 
             overflowY="auto"
+            bg="transparent"
             css={{
               '&::-webkit-scrollbar': {
                 width: '6px',
@@ -90,7 +95,7 @@ export default async function Home() {
           </GridItem>
 
           {/* 桌面端：排行榜在右侧 */}
-          <GridItem display={{ base: "none", lg: "flex" }} h="full">
+          <GridItem display={{ base: "none", lg: "flex" }} h="full" bg="transparent">
             <TopLikes sentences={sentences} />
           </GridItem>
         </Grid>

@@ -91,8 +91,14 @@ export default function Timeline({ initialSentences }: TimelineProps) {
   }, [loadMore]);
 
   return (
-    <Box w="full" bg={{ base: "white", _dark: "gray.800" }} rounded="lg" shadow="md" p={{ base: 4, sm: 6 }}>
-      <Box position="relative">
+    <Box
+      w="full"
+      pt={{ base: 0, sm: 0 }}
+      px={{ base: 4, sm: 6 }}
+      pb={{ base: 4, sm: 6 }}
+      bg="transparent"
+    >
+      <Box position="relative" bg="transparent">
         {/* 时间线 */}
         <Box
           position="absolute"
@@ -106,7 +112,7 @@ export default function Timeline({ initialSentences }: TimelineProps) {
         />
 
         {/* 句子列表 */}
-        <VStack gap={{ base: 6, sm: 8 }} align="stretch">
+        <VStack gap={{ base: 6, sm: 8 }} align="stretch" bg="transparent">
           {displayedSentences.map((sentence, index) => {
             const { monthDay, year } = formatDate(sentence.date);
             return (
@@ -174,6 +180,8 @@ export default function Timeline({ initialSentences }: TimelineProps) {
                   _hover={{ shadow: "md" }}
                   transition="all 0.2s"
                   role="group"
+                  position="relative"
+                  zIndex={1}
                 >
                   {/* 内容 - 默认省略，悬停显示完整 */}
                   <Text

@@ -146,7 +146,7 @@ export default function TopLikes({ sentences }: TopLikesProps) {
 
   return (
     <Box
-      bg={{ base: "white", _dark: "gray.800" }}
+      bg={{ base: "white", _dark: "gray.700" }}
       rounded="lg"
       shadow="md"
       p={{ base: 4, sm: 5, lg: 6 }}
@@ -154,6 +154,7 @@ export default function TopLikes({ sentences }: TopLikesProps) {
       flexDirection="column"
       h="full"
       overflow="hidden"
+      w="full"
     >
       <Flex align="center" gap={2} mb={{ base: 3, sm: 4 }} flexShrink={0}>
         <Text fontSize={{ base: "xl", sm: "2xl" }}>🏆</Text>
@@ -163,13 +164,20 @@ export default function TopLikes({ sentences }: TopLikesProps) {
       </Flex>
 
       {/* 卡片列表：flex=1 + overflowY auto 做兜底，即使计算偏差也能滚动 */}
-      <VStack gap={{ base: 2, sm: 2.5 }} flex="1" minH="0" align="stretch" overflowY="auto">
+      <VStack
+        gap={{ base: 2, sm: 2.5 }}
+        flex="1"
+        minH="0"
+        align="stretch"
+        overflowY="auto"
+        css={{ scrollbarGutter: "stable" }}
+      >
         {isLoading ? (
           <VStack gap={3}>
             {[1, 2, 3].map(i => (
               <Box key={i}>
-                <Skeleton h={4} w="75%" mb={2} colorPalette="gray" />
-                <Skeleton h={3} w="50%" colorPalette="gray" />
+                <Skeleton h={4} w="75%" mb={2} />
+                <Skeleton h={3} w="50%" />
               </Box>
             ))}
           </VStack>
@@ -274,7 +282,6 @@ export default function TopLikes({ sentences }: TopLikesProps) {
               <Button
                 size="sm"
                 variant="outline"
-                colorPalette="gray"
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 disabled={currentPage === 1}
               >
@@ -288,7 +295,6 @@ export default function TopLikes({ sentences }: TopLikesProps) {
               <Button
                 size="sm"
                 variant="outline"
-                colorPalette="gray"
                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                 disabled={currentPage === totalPages}
               >
@@ -301,7 +307,6 @@ export default function TopLikes({ sentences }: TopLikesProps) {
               <Button
                 size="sm"
                 variant="outline"
-                colorPalette="gray"
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 disabled={currentPage === 1}
               >
@@ -327,7 +332,6 @@ export default function TopLikes({ sentences }: TopLikesProps) {
               <Button
                 size="sm"
                 variant="outline"
-                colorPalette="gray"
                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                 disabled={currentPage === totalPages}
               >
